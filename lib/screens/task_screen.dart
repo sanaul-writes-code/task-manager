@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/task.dart';
+import '../services/task_service.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -9,8 +9,8 @@ class TaskScreen extends StatefulWidget {
 }
 
 class _TaskScreenState extends State<TaskScreen> {
+  final TaskService _taskService = TaskService();
   final TextEditingController _taskController = TextEditingController();
-  final List<Task> _tasks = [];
 
   @override
   void dispose() {
@@ -18,47 +18,19 @@ class _TaskScreenState extends State<TaskScreen> {
     super.dispose();
   }
 
-  void _addTask() {
+  Future<void> _addTask() async {
     final title = _taskController.text.trim();
 
     if (title.isEmpty) return;
 
-    setState(() {
-      _tasks.add(
-        Task(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          title: title,
-          isCompleted: false,
-          subtasks: const [],
-          createdAt: DateTime.now(),
-        ),
-      );
-    });
-
+    await _taskService.addTask(title);
     _taskController.clear();
-  }
-
-  void _toggleTask(int index) {
-    setState(() {
-      _tasks[index] = _tasks[index].copyWith(
-        isCompleted: !_tasks[index].isCompleted,
-      );
-    });
-  }
-
-  void _deleteTask(int index) {
-    setState(() {
-      _tasks.removeAt(index);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Manager'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Task Manager'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -76,49 +48,17 @@ class _TaskScreenState extends State<TaskScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _addTask,
-                  child: const Text('Add'),
-                ),
+                ElevatedButton(onPressed: _addTask, child: const Text('Add')),
               ],
             ),
             const SizedBox(height: 20),
-            Expanded(
-              child: _tasks.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No tasks yet',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: _tasks.length,
-                      itemBuilder: (context, index) {
-                        final task = _tasks[index];
-
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          child: ListTile(
-                            leading: Checkbox(
-                              value: task.isCompleted,
-                              onChanged: (_) => _toggleTask(index),
-                            ),
-                            title: Text(
-                              task.title,
-                              style: TextStyle(
-                                decoration: task.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : TextDecoration.none,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => _deleteTask(index),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+            const Expanded(
+              child: Center(
+                child: Text(
+                  'Task list will appear here',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
             ),
           ],
         ),
