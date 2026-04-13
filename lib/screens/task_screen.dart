@@ -12,6 +12,7 @@ class TaskScreen extends StatefulWidget {
 class _TaskScreenState extends State<TaskScreen> {
   final TaskService _taskService = TaskService();
   final TextEditingController _taskController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void dispose() {
@@ -158,7 +159,22 @@ class _TaskScreenState extends State<TaskScreen> {
                 ElevatedButton(onPressed: _addTask, child: const Text('Add')),
               ],
             ),
+            const SizedBox(height: 12),
+
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Search tasks',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.trim().toLowerCase();
+                });
+              },
+            ),
             const SizedBox(height: 20),
+            //const SizedBox(height: 20),
             Expanded(
               child: StreamBuilder<List<Task>>(
                 stream: _taskService.streamTasks(),
@@ -178,6 +194,10 @@ class _TaskScreenState extends State<TaskScreen> {
 
                   final tasks = snapshot.data ?? [];
 
+                  final filteredTasks = tasks.where((task) {
+                    return task.title.toLowerCase().contains(_searchQuery);
+                  }).toList();
+
                   if (tasks.isEmpty) {
                     return const Center(
                       child: Text(
@@ -187,10 +207,19 @@ class _TaskScreenState extends State<TaskScreen> {
                     );
                   }
 
+                  if (filteredTasks.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No matching tasks found',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    );
+                  }
+
                   return ListView.builder(
-                    itemCount: tasks.length,
+                    itemCount: filteredTasks.length,
                     itemBuilder: (context, index) {
-                      final task = tasks[index];
+                      final task = filteredTasks[index];
 
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 6),
