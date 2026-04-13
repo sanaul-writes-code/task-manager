@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/task.dart';
 import '../services/task_service.dart';
 
 class TaskScreen extends StatefulWidget {
@@ -23,8 +24,37 @@ class _TaskScreenState extends State<TaskScreen> {
 
     if (title.isEmpty) return;
 
-    await _taskService.addTask(title);
-    _taskController.clear();
+    try {
+      await _taskService.addTask(title);
+      _taskController.clear();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error adding task: $e')));
+    }
+  }
+
+  Future<void> _toggleTask(Task task) async {
+    try {
+      await _taskService.toggleTask(task);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating task: $e')));
+    }
+  }
+
+  Future<void> _deleteTask(String taskId) async {
+    try {
+      await _taskService.deleteTask(taskId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error deleting task: $e')));
+    }
   }
 
   @override
@@ -52,12 +82,63 @@ class _TaskScreenState extends State<TaskScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            const Expanded(
-              child: Center(
-                child: Text(
-                  'Task list will appear here',
-                  style: TextStyle(fontSize: 18),
-                ),
+            Expanded(
+              child: StreamBuilder<List<Task>>(
+                stream: _taskService.streamTasks(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Something went wrong:\n${snapshot.error}',
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+
+                  final tasks = snapshot.data ?? [];
+
+                  if (tasks.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No tasks yet',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        child: ListTile(
+                          leading: Checkbox(
+                            value: task.isCompleted,
+                            onChanged: (_) => _toggleTask(task),
+                          ),
+                          title: Text(
+                            task.title,
+                            style: TextStyle(
+                              decoration: task.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                            ),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _deleteTask(task.id),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
