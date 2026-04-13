@@ -108,6 +108,32 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
+  Future<void> _confirmDeleteTask(String taskId) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Task'),
+          content: const Text('Are you sure you want to delete this task?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      await _deleteTask(taskId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,7 +213,7 @@ class _TaskScreenState extends State<TaskScreen> {
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete),
-                                onPressed: () => _deleteTask(task.id),
+                                onPressed: () => _confirmDeleteTask(task.id),
                               ),
                             ],
                           ),
