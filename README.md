@@ -1,5 +1,11 @@
 # Task Manager App
 
+<mark>**❗ ATTENTION:** APK and Reflection Document files are provided below. Please click on the links to download the files:</mark>
+
+<span style="color: black; background-color: #d8fe00">**📱 Download APK:**</span> [task_manager.apk](./_APK/task_manager.apk)
+
+<span style="color: black; background-color: #e410dd">**📄 Download Reflection Document:**</span> [task manager reflection.pdf](./_REFLECTION/task%20manager%20reflection.pdf)
+
 A real-time task management mobile application built using Flutter and Firebase Firestore.  
 This app allows users to create, manage and organize tasks with nested subtasks in real time.
 
