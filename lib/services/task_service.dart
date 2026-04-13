@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/task.dart';
 
 class TaskService {
-  final CollectionReference _tasksCollection =
-      FirebaseFirestore.instance.collection('tasks');
+  final CollectionReference _tasksCollection = FirebaseFirestore.instance
+      .collection('tasks');
 
   // Create task
   Future<void> addTask(String title) async {
@@ -19,15 +19,9 @@ class TaskService {
 
   //Read task
   Stream<List<Task>> streamTasks() {
-    return _tasksCollection
-        .orderBy('createdAt')
-        .snapshots()
-        .map((snapshot) {
+    return _tasksCollection.orderBy('createdAt').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return Task.fromMap(
-          doc.id,
-          doc.data() as Map<String, dynamic>,
-        );
+        return Task.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();
     });
   }
@@ -42,5 +36,22 @@ class TaskService {
   // Delete task
   Future<void> deleteTask(String taskId) async {
     await _tasksCollection.doc(taskId).delete();
+  }
+
+  // Add subtask
+  Future<void> addSubtask(Task task, String subtask) async {
+    if (subtask.trim().isEmpty) return;
+
+    final updatedSubtasks = List<String>.from(task.subtasks)
+      ..add(subtask.trim());
+
+    await _tasksCollection.doc(task.id).update({'subtasks': updatedSubtasks});
+  }
+
+  // Delete subtask
+  Future<void> deleteSubtask(Task task, int index) async {
+    final updatedSubtasks = List<String>.from(task.subtasks)..removeAt(index);
+
+    await _tasksCollection.doc(task.id).update({'subtasks': updatedSubtasks});
   }
 }

@@ -57,6 +57,57 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
+  Widget _buildSubtaskSection(Task task) {
+    final TextEditingController subtaskController = TextEditingController();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: subtaskController,
+                  decoration: const InputDecoration(hintText: 'Add subtask...'),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () async {
+                  final text = subtaskController.text.trim();
+                  if (text.isEmpty) return;
+
+                  await _taskService.addSubtask(task, text);
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          if (task.subtasks.isEmpty)
+            const Text('No subtasks')
+          else
+            Column(
+              children: List.generate(task.subtasks.length, (index) {
+                final subtask = task.subtasks[index];
+
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(subtask),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _taskService.deleteSubtask(task, index),
+                  ),
+                );
+              }),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,23 +168,30 @@ class _TaskScreenState extends State<TaskScreen> {
 
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListTile(
-                          leading: Checkbox(
-                            value: task.isCompleted,
-                            onChanged: (_) => _toggleTask(task),
+                        child: ExpansionTile(
+                          title: Row(
+                            children: [
+                              Checkbox(
+                                value: task.isCompleted,
+                                onChanged: (_) => _toggleTask(task),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  task.title,
+                                  style: TextStyle(
+                                    decoration: task.isCompleted
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _deleteTask(task.id),
+                              ),
+                            ],
                           ),
-                          title: Text(
-                            task.title,
-                            style: TextStyle(
-                              decoration: task.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                            ),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteTask(task.id),
-                          ),
+                          children: [_buildSubtaskSection(task)],
                         ),
                       );
                     },
